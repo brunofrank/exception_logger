@@ -4,6 +4,7 @@
 <%= pagination_remote_links @exceptions %>
 </div>
 
+Teste <%= params.inspect %> <%= Time.now %>
 <h1>Exceptions <%= "<span>(filtered)</span>" if filtered? %> </h1>
 
 <table cellspacing="0">
@@ -16,7 +17,7 @@
   </thead>
 
   <tbody>
-  <% exceptions.each do |exc| -%>
+  <% @exceptions.each do |exc| -%>
     <tr id="exception-<%= exc.id %>" class="<%= cycle("eor", "") %> exception">
       <td>
 <div class="expclass">
@@ -39,7 +40,6 @@ if Date.today == exc.created_at.to_date
 <% end %>
 </td>
       <td><%= link_to_remote 'Delete', {:url => { :action => 'destroy', :id => exc }} , :class => "util" %></td>
-
     </tr>
   <% end -%>
   </tbody>

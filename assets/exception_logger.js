@@ -1,48 +1,57 @@
 ExceptionLogger = {
   filters: ['exception_names', 'controller_actions', 'date_ranges'],
   setPage: function(num) {
-    $('page').value = num;
-    $('query-form').onsubmit();
+    $('#page').val(num);
+    $('#query-form').submit();
   },
   
   setFilter: function(context, name) {
-    var filterName = context + '_filter'
-    $(filterName).value = ($F(filterName) == name) ? '' : name;
+    var filterName = '#'+ context + '_filter'
+    $(filterName).val($(filterName).val() == name ? '' : name);
     this.deselect(context, filterName);
-    $('page').value = '1';
-    $('query-form').onsubmit();
+    $('#page').val('1');
+    $('#query-form').submit();
   },
 
   deselect: function(context, filterName) {
-    $$('#' + context + ' a').each(function(a) {
-      var value = $(filterName) ? $F(filterName) : null;
-      a.className = (value && (a.getAttribute('title') == value || a.innerHTML == value)) ? 'selected' : '';
+    $('#' + context + ' a').each(function(i, a) {
+      var value = $(filterName) ? $(filterName).val() : null;
+      $(a).addClass(value && ($(a).attr('title') == value || $(a).text() == value)) ? 'selected' : '';
     });
   },
   
   deleteAll: function() {
-    return Form.serialize('query-form') + '&' + $$('tr.exception').collect(function(tr) { return tr.getAttribute('id').gsub(/^\w+-/, ''); }).toQueryString('ids');
+    var params = [];
+    $('tr.exception').each(function(i, tr) { 
+        params.push($(tr).attr('id').replace(/^\w+-/g, ''));            
+    });
+    
+    return $('#query-form').serialize() + '&' + params.toQueryString('ids');    
   }
 }
 
-Event.observe(window, 'load', function() {
-  ExceptionLogger.filters.each(function(context) {
-    $(context + '_filter').value = '';
-  });
+$(document).ready(function(){
+    $.each(ExceptionLogger.filters, function(i, item){ 
+        $('#' + item + '_filter').val('');        
+    });
 });
 
-Object.extend(Array.prototype, {
-  toQueryString: function(name) {
-    return this.collect(function(item) { return name + "[]=" + encodeURIComponent(item) }).join('&');
-  }
+Array.prototype.toQueryString =  function(name) {
+    var queryString = ""
+    $.each(this, function(i, item){ 
+        if (queryString != "")
+            queryString += "&"
+                        
+        queryString += name + "[]=" + encodeURIComponent(item);
+    });    
+    
+    return queryString;
+}
+
+$('activity').bind("ajaxStart", function(){
+    $('activity').fadeIn(1000);
 });
 
-Ajax.Responders.register({
-  onCreate: function() {
-    if($('activity') && Ajax.activeRequestCount > 0) $('activity').visualEffect('appear', {duration:0.25});
-  },
-
-  onComplete: function() {
-    if($('activity') && Ajax.activeRequestCount == 0) $('activity').visualEffect('fade', {duration:0.25});
-  }
+$('activity').bind("ajaxComplete", function(){
+    $('activity').fadeOut(1000);
 });
